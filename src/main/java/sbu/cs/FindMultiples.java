@@ -1,38 +1,63 @@
 package sbu.cs;
 
-/*
-    In this exercise, you must write a multithreaded program that finds all
-    integers in the range [1, n] that are divisible by 3, 5, or 7. Return the
-    sum of all unique integers as your answer.
-    Note that an integer such as 15 (which is a multiple of 3 and 5) is only
-    counted once.
-
-    The Positive integer n > 0 is given to you as input. Create as many threads as
-    you need to solve the problem. You can use a Thread Pool for bonus points.
-
-    Example:
-    Input: n = 10
-    Output: sum = 40
-    Explanation: Numbers in the range [1, 10] that are divisible by 3, 5, or 7 are:
-    3, 5, 6, 7, 9, 10. The sum of these numbers is 40.
-
-    Use the tests provided in the test folder to ensure your code works correctly.
- */
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class FindMultiples
 {
+    public class Multiple implements Runnable{
+        private int n;
+        private int div;
 
-    // TODO create the required multithreading class/classes using your preferred method.
+        public Multiple(int n, int div) {
+            this.n = n;
+            this.div = div;
+        }
+        private ArrayList<Integer> muls = new ArrayList<>();
 
+        public ArrayList<Integer> getMuls() {
+            return muls;
+        }
 
-    /*
-    The getSum function should be called at the start of your program.
-    New Threads and tasks should be created here.
-    */
+        @Override
+        public void run() {
+            for (int i = 1; i <= n / div; i++){
+                muls.add(i * div);
+            }
+        }
+    }
+
     public int getSum(int n) {
         int sum = 0;
 
-        // TODO
+        ExecutorService TP = Executors.newFixedThreadPool(3);
+        Multiple muls3 = new Multiple(n, 3);
+        TP.execute(muls3);
+        Multiple muls5 = new Multiple(n, 5);
+        TP.execute(muls5);
+        Multiple muls7 = new Multiple(n, 7);
+        TP.execute(muls7);
+        TP.shutdown();
+        try {
+            TP.awaitTermination(10000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        ArrayList<Integer> allMuls = new ArrayList<>();
+        allMuls.addAll(muls3.getMuls());
+        allMuls.addAll(muls5.getMuls());
+        allMuls.addAll(muls7.getMuls());
+
+        Integer[] arr = new Integer[allMuls.size()];  //convert arraylist to array and use built-in methods to calculate sum of unique elements
+        arr = allMuls.toArray(arr);
+        sum = Arrays.stream(arr).distinct().mapToInt(Integer::intValue).sum();
 
         return sum;
     }
